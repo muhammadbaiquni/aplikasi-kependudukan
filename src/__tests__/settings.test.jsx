@@ -102,6 +102,8 @@ describe('Settings', () => {
     await waitFor(() => {
       expect(resetDataMock).toHaveBeenCalledWith({
         resetPenduduk: true,
+        resetPendudukPindah: true,
+        resetPendudukMeninggal: true,
         resetKeluarga: true,
         resetPeristiwa: true,
         resetReferences: true

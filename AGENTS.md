@@ -6,8 +6,8 @@
 - **Run electron dev**: `npm run electron:dev`
 - **Build project**: `npm run build`
 - **Build electron app**: `npm run electron:build`
+- **Portable output**: generated in `dist/` by `npm run electron:build`
 - **Run linter**: `npm run lint`
-- **Run typecheck**: `npm run typecheck``
 
 ## Code Style Guidelines
 

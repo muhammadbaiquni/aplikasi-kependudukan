@@ -238,6 +238,7 @@ const NORMALIZED_HEADER_MAP = new Map([
   ['pddk_akhir', 'pddk_akhir'],
   ['pekerjaan', 'pekerjaan'],
   ['alamat', 'alamat'],
+  ['nama_ayah', 'nama_ayah'],
   ['nama ayah', 'nama_ayah'],
   ['nama_ibu', 'nama_ibu'],
   ['nama ibu', 'nama_ibu'],

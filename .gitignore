@@ -15,6 +15,10 @@ release/
 # Logs
 *.log
 
+# Temporary files
+*.db
+*.sqlite
+
 # Environment variables
 .env
 .env.local

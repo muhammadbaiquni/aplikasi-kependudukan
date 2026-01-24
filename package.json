@@ -2,7 +2,7 @@
   "name": "aplikasi-kependudukan",
   "description": "Aplikasi ini untuk mendata data penduduk, pivot table, serta melakukan proses mudah ketika ada perpindahan penduduk atau mortalitas terjadi",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Muhammad Baiquni",
     "email": "muhammad.baiquni@gmail.com"

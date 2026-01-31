@@ -19,7 +19,7 @@ const getAgeFromBirthDate = (birthDate) => {
   return Math.max(0, age);
 };
 
-const mockData = {
+const initialMockData = {
   penduduk: [
     {
       id: 1,
@@ -38,6 +38,14 @@ const mockData = {
       nama_ibu: 'Siti',
       nama_kep_kel: 'Ahmad Fauzi',
       alamat: 'Jl. Merdeka No. 1, Jakarta',
+      rt: '001',
+      rw: '002',
+      kelurahan: 'Gambir',
+      kecamatan: 'Gambir',
+      kota: 'Jakarta',
+      provinsi: 'DKI Jakarta',
+      kodepos: '10110',
+      telepon: '081234567890',
       state: 'AKTIF'
     },
     {
@@ -57,9 +65,33 @@ const mockData = {
       nama_ibu: 'Rina',
       nama_kep_kel: 'Ahmad Fauzi',
       alamat: 'Jl. Merdeka No. 1, Jakarta',
+      rt: '001',
+      rw: '002',
+      kelurahan: 'Gambir',
+      kecamatan: 'Gambir',
+      kota: 'Jakarta',
+      provinsi: 'DKI Jakarta',
+      kodepos: '10110',
+      telepon: '081234567891',
       state: 'AKTIF'
     }
-  ]
+  ],
+  penduduk_pindah: [],
+  penduduk_meninggal: []
+};
+
+let mockData = {
+  penduduk: initialMockData.penduduk.map((item) => ({ ...item })),
+  penduduk_pindah: [],
+  penduduk_meninggal: []
+};
+
+export const resetMockData = () => {
+  mockData = {
+    penduduk: initialMockData.penduduk.map((item) => ({ ...item })),
+    penduduk_pindah: [],
+    penduduk_meninggal: []
+  };
 };
 
 export const login = async (username, password) => {
@@ -87,14 +119,20 @@ export const getPendudukPindahList = async () => {
   if (isRenderer && window.electron) {
     return window.electron.getPendudukPindahList();
   }
-  return [];
+  return mockData.penduduk_pindah.map((item) => ({
+    ...item,
+    umur: getAgeFromBirthDate(item.tgl_lhr)
+  }));
 };
 
 export const getPendudukMeninggalList = async () => {
   if (isRenderer && window.electron) {
     return window.electron.getPendudukMeninggalList();
   }
-  return [];
+  return mockData.penduduk_meninggal.map((item) => ({
+    ...item,
+    umur: getAgeFromBirthDate(item.tgl_lhr)
+  }));
 };
 
 export const getPendudukById = async (id) => {
@@ -334,5 +372,33 @@ export const movePenduduk = async (payload) => {
   if (isRenderer && window.electron) {
     return window.electron.movePenduduk(payload);
   }
-  return { success: true, moved: 1 };
+  const { id, action, moveFamily, tgl_peristiwa, ket } = payload || {};
+  const target = action === 'meninggal'
+    ? mockData.penduduk_meninggal
+    : mockData.penduduk_pindah;
+  const state = action === 'meninggal' ? 'MENINGGAL' : 'PINDAH';
+
+  const base = mockData.penduduk.find((item) => item.id === id);
+  if (!base) {
+    return { success: false, moved: 0 };
+  }
+
+  const moveRows = moveFamily && base.no_kk
+    ? mockData.penduduk.filter((item) => item.no_kk === base.no_kk)
+    : [base];
+
+  const eventDate = tgl_peristiwa || new Date().toISOString().slice(0, 10);
+  const movedIds = new Set(moveRows.map((item) => item.id));
+
+  moveRows.forEach((row) => {
+    target.push({
+      ...row,
+      state,
+      tgl_peristiwa: eventDate,
+      ket: ket || null
+    });
+  });
+
+  mockData.penduduk = mockData.penduduk.filter((item) => !movedIds.has(item.id));
+  return { success: true, moved: moveRows.length };
 };

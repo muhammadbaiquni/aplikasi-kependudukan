@@ -79,6 +79,50 @@ export default function PendudukPindahList() {
     return () => window.removeEventListener('resize', handleResize);
   }, [data.length]);
 
+  const formatAddress = (record) => {
+    const parts = [];
+    const alamat = record.alamat?.trim();
+    if (alamat) {
+      parts.push(alamat);
+    }
+
+    const rtRaw = record.rt?.toString().trim();
+    const rwRaw = record.rw?.toString().trim();
+    const rt = rtRaw ? rtRaw.padStart(3, '0') : '';
+    const rw = rwRaw ? rwRaw.padStart(3, '0') : '';
+    if (rt || rw) {
+      parts.push(`RT ${rt || '-'}${rw ? `/RW ${rw}` : ''}`);
+    }
+
+    const kelurahan = record.kelurahan?.trim();
+    if (kelurahan) {
+      parts.push(`Kelurahan ${kelurahan}`);
+    }
+
+    const kecamatan = record.kecamatan?.trim();
+    if (kecamatan) {
+      parts.push(`Kecamatan ${kecamatan}`);
+    }
+
+    const kota = record.kota?.trim();
+    if (kota) {
+      parts.push(kota);
+    }
+
+    const provinsiRaw = record.provinsi?.trim();
+    if (provinsiRaw) {
+      const provinsi = provinsiRaw.replace(/^provinsi\s+/i, '');
+      parts.push(`Provinsi ${provinsi}`);
+    }
+
+    const kodepos = record.kodepos?.toString().trim();
+    if (kodepos) {
+      parts.push(kodepos);
+    }
+
+    return parts.join(', ');
+  };
+
   const columns = [
     { title: 'NIK', dataIndex: 'nik', key: 'nik', width: 150 },
     { title: 'Nama', dataIndex: 'nama', key: 'nama', width: 200 },
@@ -116,7 +160,15 @@ export default function PendudukPindahList() {
     { title: 'Agama', dataIndex: 'agama', key: 'agama', width: 120 },
     { title: 'Pendidikan', dataIndex: 'pddk_akhir', key: 'pddk_akhir', width: 180 },
     { title: 'Pekerjaan', dataIndex: 'pekerjaan', key: 'pekerjaan', width: 200 },
-    { title: 'Alamat', dataIndex: 'alamat', key: 'alamat', width: 260, ellipsis: true }
+    {
+      title: 'Alamat',
+      dataIndex: 'alamat',
+      key: 'alamat',
+      width: 520,
+      ellipsis: true,
+      render: (_, record) => formatAddress(record)
+    },
+    { title: 'Telepon', dataIndex: 'telepon', key: 'telepon', width: 140 }
   ];
 
   const options = useMemo(() => {
@@ -155,7 +207,15 @@ export default function PendudukPindahList() {
       || item.nik?.toLowerCase().includes(query)
       || item.nama?.toLowerCase().includes(query)
       || item.no_kk?.toLowerCase().includes(query)
-      || item.alamat?.toLowerCase().includes(query);
+      || item.alamat?.toLowerCase().includes(query)
+      || item.rt?.toLowerCase().includes(query)
+      || item.rw?.toLowerCase().includes(query)
+      || item.kelurahan?.toLowerCase().includes(query)
+      || item.kecamatan?.toLowerCase().includes(query)
+      || item.kota?.toLowerCase().includes(query)
+      || item.provinsi?.toLowerCase().includes(query)
+      || item.kodepos?.toLowerCase().includes(query)
+      || item.telepon?.toLowerCase().includes(query);
 
     const matchesJk = !filterJk || item.jk === filterJk;
     const matchesStatus = !filterStatus || item.status === filterStatus;
@@ -190,7 +250,7 @@ export default function PendudukPindahList() {
       <Row gutter={[12, 12]} style={styles.filterBar}>
         <Col xs={24} md={8}>
           <Input.Search
-            placeholder="Cari NIK, nama, No. KK, alamat"
+            placeholder="Cari NIK, nama, No. KK, alamat, RT/RW, kelurahan"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             allowClear
@@ -261,7 +321,7 @@ export default function PendudukPindahList() {
           dataSource={filteredData}
           loading={loading}
           rowKey="id"
-          scroll={{ x: 1400, y: tableHeight }}
+          scroll={{ x: 2000, y: tableHeight }}
           pagination={{ pageSize: 20 }}
           bordered
         />

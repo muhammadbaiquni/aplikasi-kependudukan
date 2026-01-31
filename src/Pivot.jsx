@@ -20,6 +20,14 @@ const FIELDS = [
   { key: 'nama_ibu', label: 'Nama Ibu', type: 'string' },
   { key: 'nama_kep_kel', label: 'Nama Kep Kel', type: 'string' },
   { key: 'alamat', label: 'Alamat', type: 'string' },
+  { key: 'rt', label: 'RT', type: 'string' },
+  { key: 'rw', label: 'RW', type: 'string' },
+  { key: 'kelurahan', label: 'Kelurahan', type: 'string' },
+  { key: 'kecamatan', label: 'Kecamatan', type: 'string' },
+  { key: 'kota', label: 'Kota', type: 'string' },
+  { key: 'provinsi', label: 'Provinsi', type: 'string' },
+  { key: 'kodepos', label: 'Kode Pos', type: 'string' },
+  { key: 'telepon', label: 'Telepon', type: 'string' },
   { key: 'tgl_peristiwa', label: 'Tanggal Peristiwa', type: 'string' },
   { key: 'umur', label: 'Umur', type: 'number' }
 ];

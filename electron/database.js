@@ -164,7 +164,15 @@ const CSV_HEADERS = [
   'NAMA_AYAH',
   'NAMA_IBU',
   'NAMA_KEP_KEL',
-  'ALAMAT'
+  'ALAMAT',
+  'RT',
+  'RW',
+  'KELURAHAN',
+  'KECAMATAN',
+  'KOTA',
+  'PROVINSI',
+  'KODEPOS',
+  'TELEPON'
 ];
 
 const TEMPLATE_ROWS = [
@@ -183,7 +191,15 @@ const TEMPLATE_ROWS = [
     NAMA_AYAH: 'Subhan',
     NAMA_IBU: 'Siti',
     NAMA_KEP_KEL: 'Ahmad Fauzi',
-    ALAMAT: 'Jl. Merdeka No. 1'
+    ALAMAT: 'Jl. Merdeka No. 1',
+    RT: '001',
+    RW: '002',
+    KELURAHAN: 'Gambir',
+    KECAMATAN: 'Gambir',
+    KOTA: 'Jakarta',
+    PROVINSI: 'DKI Jakarta',
+    KODEPOS: '10110',
+    TELEPON: '081234567890'
   },
   {
     NIK: '3201010101010002',
@@ -200,7 +216,15 @@ const TEMPLATE_ROWS = [
     NAMA_AYAH: 'Herman',
     NAMA_IBU: 'Rina',
     NAMA_KEP_KEL: 'Ahmad Fauzi',
-    ALAMAT: 'Jl. Merdeka No. 1'
+    ALAMAT: 'Jl. Merdeka No. 1',
+    RT: '001',
+    RW: '002',
+    KELURAHAN: 'Gambir',
+    KECAMATAN: 'Gambir',
+    KOTA: 'Jakarta',
+    PROVINSI: 'DKI Jakarta',
+    KODEPOS: '10110',
+    TELEPON: '081234567891'
   },
   {
     NIK: '3201010101010003',
@@ -217,7 +241,15 @@ const TEMPLATE_ROWS = [
     NAMA_AYAH: 'Ahmad Fauzi',
     NAMA_IBU: 'Siti Aminah',
     NAMA_KEP_KEL: 'Ahmad Fauzi',
-    ALAMAT: 'Jl. Merdeka No. 1'
+    ALAMAT: 'Jl. Merdeka No. 1',
+    RT: '001',
+    RW: '002',
+    KELURAHAN: 'Gambir',
+    KECAMATAN: 'Gambir',
+    KOTA: 'Jakarta',
+    PROVINSI: 'DKI Jakarta',
+    KODEPOS: '10110',
+    TELEPON: '081234567892'
   }
 ];
 
@@ -244,7 +276,34 @@ const NORMALIZED_HEADER_MAP = new Map([
   ['nama ibu', 'nama_ibu'],
   ['nama kepala keluarga', 'nama_kep_kel'],
   ['nama kep kel', 'nama_kep_kel'],
-  ['nama_kep_kel', 'nama_kep_kel']
+  ['nama_kep_kel', 'nama_kep_kel'],
+  ['rt', 'rt'],
+  ['rw', 'rw'],
+  ['kota', 'kota'],
+  ['kabupaten', 'kota'],
+  ['kabupaten/kota', 'kota'],
+  ['kabupaten_kota', 'kota'],
+  ['kelurahan', 'kelurahan'],
+  ['desa', 'kelurahan'],
+  ['desa/kelurahan', 'kelurahan'],
+  ['desa_kelurahan', 'kelurahan'],
+  ['kecamatan', 'kecamatan'],
+  ['provinsi', 'provinsi'],
+  ['propinsi', 'provinsi'],
+  ['kodepos', 'kodepos'],
+  ['kode pos', 'kodepos'],
+  ['kode_pos', 'kodepos'],
+  ['postal code', 'kodepos'],
+  ['pos', 'kodepos'],
+  ['telepon', 'telepon'],
+  ['telp', 'telepon'],
+  ['no telepon', 'telepon'],
+  ['no. telepon', 'telepon'],
+  ['telephone', 'telepon'],
+  ['hp', 'telepon'],
+  ['handphone', 'telepon'],
+  ['no. hp', 'telepon'],
+  ['no_hp', 'telepon']
 ]);
 
 const normalizeHeader = (value) => value?.toString().trim().toLowerCase();
@@ -421,6 +480,30 @@ const ensureUserColumns = () => {
   }
 };
 
+const ADDRESS_COLUMNS = [
+  { name: 'rt', type: 'TEXT' },
+  { name: 'rw', type: 'TEXT' },
+  { name: 'kelurahan', type: 'TEXT' },
+  { name: 'kecamatan', type: 'TEXT' },
+  { name: 'kota', type: 'TEXT' },
+  { name: 'provinsi', type: 'TEXT' },
+  { name: 'kodepos', type: 'TEXT' },
+  { name: 'telepon', type: 'TEXT' }
+];
+
+const ensureTableColumns = (tableName, columns) => {
+  const tableColumns = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  if (!tableColumns.length) {
+    return;
+  }
+  const columnNames = new Set(tableColumns.map((col) => col.name));
+  columns.forEach(({ name, type }) => {
+    if (!columnNames.has(name)) {
+      db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${name} ${type}`);
+    }
+  });
+};
+
 const ensureReferenceTables = () => {
   Object.values(REFERENCE_TABLES).forEach((table) => {
     db.exec(`
@@ -468,6 +551,14 @@ const ensurePendudukSchema = () => {
         nama_ibu TEXT,
         nama_kep_kel TEXT,
         alamat TEXT,
+        rt TEXT,
+        rw TEXT,
+        kelurahan TEXT,
+        kecamatan TEXT,
+        kota TEXT,
+        provinsi TEXT,
+        kodepos TEXT,
+        telepon TEXT,
         state TEXT DEFAULT 'AKTIF',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -478,10 +569,12 @@ const ensurePendudukSchema = () => {
   }
 
   if (!table.sql.includes('CHECK(')) {
+    ensureTableColumns('penduduk', ADDRESS_COLUMNS);
     return;
   }
 
   db.exec('ALTER TABLE penduduk RENAME TO penduduk_old;');
+  ensureTableColumns('penduduk_old', ADDRESS_COLUMNS);
   db.exec(`
     CREATE TABLE penduduk (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -501,6 +594,14 @@ const ensurePendudukSchema = () => {
       nama_ibu TEXT,
       nama_kep_kel TEXT,
       alamat TEXT,
+      rt TEXT,
+      rw TEXT,
+      kelurahan TEXT,
+      kecamatan TEXT,
+      kota TEXT,
+      provinsi TEXT,
+      kodepos TEXT,
+      telepon TEXT,
       state TEXT DEFAULT 'AKTIF',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -511,15 +612,18 @@ const ensurePendudukSchema = () => {
     INSERT INTO penduduk (
       id, umur, nik, nama, jk, tmpt_lhr, tgl_lhr, status, shdk, no_kk,
       agama, pddk_akhir, pekerjaan, nama_ayah, nama_ibu, nama_kep_kel,
-      alamat, state, created_at, updated_at, deleted_at
+      alamat, rt, rw, kelurahan, kecamatan, kota, provinsi, kodepos, telepon,
+      state, created_at, updated_at, deleted_at
     )
     SELECT
       id, umur, nik, nama, jk, tmpt_lhr, tgl_lhr, status, shdk, no_kk,
       agama, pddk_akhir, pekerjaan, nama_ayah, nama_ibu, nama_kep_kel,
-      alamat, state, created_at, updated_at, deleted_at
+      alamat, rt, rw, kelurahan, kecamatan, kota, provinsi, kodepos, telepon,
+      state, created_at, updated_at, deleted_at
     FROM penduduk_old;
   `);
   db.exec('DROP TABLE penduduk_old;');
+  ensureTableColumns('penduduk', ADDRESS_COLUMNS);
 };
 
 const ensurePendudukPindahSchema = () => {
@@ -542,12 +646,21 @@ const ensurePendudukPindahSchema = () => {
       nama_ibu TEXT,
       nama_kep_kel TEXT,
       alamat TEXT,
+      rt TEXT,
+      rw TEXT,
+      kelurahan TEXT,
+      kecamatan TEXT,
+      kota TEXT,
+      provinsi TEXT,
+      kodepos TEXT,
+      telepon TEXT,
       state TEXT DEFAULT 'PINDAH',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME
     );
   `);
+  ensureTableColumns('penduduk_pindah', ADDRESS_COLUMNS);
 };
 
 const ensurePendudukMeninggalSchema = () => {
@@ -570,12 +683,21 @@ const ensurePendudukMeninggalSchema = () => {
       nama_ibu TEXT,
       nama_kep_kel TEXT,
       alamat TEXT,
+      rt TEXT,
+      rw TEXT,
+      kelurahan TEXT,
+      kecamatan TEXT,
+      kota TEXT,
+      provinsi TEXT,
+      kodepos TEXT,
+      telepon TEXT,
       state TEXT DEFAULT 'MENINGGAL',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME
     );
   `);
+  ensureTableColumns('penduduk_meninggal', ADDRESS_COLUMNS);
 };
 
 const ensurePeristiwaSchema = () => {
@@ -659,15 +781,17 @@ const upsertPendudukBatch = (rows) => {
     INSERT INTO penduduk (
       nik, nama, jk, tmpt_lhr, tgl_lhr, status, shdk, no_kk,
       agama, pddk_akhir, pekerjaan, nama_ayah, nama_ibu,
-      nama_kep_kel, alamat, umur
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      nama_kep_kel, alamat, rt, rw, kelurahan, kecamatan, kota, provinsi,
+      kodepos, telepon, umur
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const updateStmt = db.prepare(`
     UPDATE penduduk SET
       nik = ?, nama = ?, jk = ?, tmpt_lhr = ?, tgl_lhr = ?,
       status = ?, shdk = ?, no_kk = ?, agama = ?, pddk_akhir = ?,
       pekerjaan = ?, nama_ayah = ?, nama_ibu = ?, nama_kep_kel = ?,
-      alamat = ?, umur = ?, updated_at = CURRENT_TIMESTAMP
+      alamat = ?, rt = ?, rw = ?, kelurahan = ?, kecamatan = ?, kota = ?,
+      provinsi = ?, kodepos = ?, telepon = ?, umur = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
 
@@ -703,6 +827,14 @@ const upsertPendudukBatch = (rows) => {
           merged.nama_ibu,
           merged.nama_kep_kel,
           merged.alamat,
+          merged.rt,
+          merged.rw,
+          merged.kelurahan,
+          merged.kecamatan,
+          merged.kota,
+          merged.provinsi,
+          merged.kodepos,
+          merged.telepon,
           computedAge,
           existing.id
         );
@@ -725,6 +857,14 @@ const upsertPendudukBatch = (rows) => {
           payload.nama_ibu,
           payload.nama_kep_kel,
           payload.alamat,
+          payload.rt,
+          payload.rw,
+          payload.kelurahan,
+          payload.kecamatan,
+          payload.kota,
+          payload.provinsi,
+          payload.kodepos,
+          payload.telepon,
           computedAge
         );
         inserted += 1;
@@ -860,14 +1000,16 @@ ipcMain.handle('db-create-penduduk', (event, data) => {
     INSERT INTO penduduk (
       nik, nama, jk, tmpt_lhr, tgl_lhr, status, shdk, no_kk,
       agama, pddk_akhir, pekerjaan, nama_ayah, nama_ibu,
-      nama_kep_kel, alamat, umur
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      nama_kep_kel, alamat, rt, rw, kelurahan, kecamatan, kota, provinsi,
+      kodepos, telepon, umur
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     data.nik, data.nama, data.jk, data.tmpt_lhr, normalizedBirthDate,
     data.status, data.shdk, data.no_kk, data.agama, data.pddk_akhir,
     data.pekerjaan, data.nama_ayah, data.nama_ibu, data.nama_kep_kel,
-    data.alamat, computedAge
+    data.alamat, data.rt, data.rw, data.kelurahan, data.kecamatan,
+    data.kota, data.provinsi, data.kodepos, data.telepon, computedAge
   );
   return { success: result.changes > 0, id: result.lastInsertRowid };
 });
@@ -880,14 +1022,16 @@ ipcMain.handle('db-update-penduduk', (event, id, data) => {
       nik = ?, nama = ?, jk = ?, tmpt_lhr = ?, tgl_lhr = ?,
       status = ?, shdk = ?, no_kk = ?, agama = ?, pddk_akhir = ?,
       pekerjaan = ?, nama_ayah = ?, nama_ibu = ?, nama_kep_kel = ?,
-      alamat = ?, umur = ?, updated_at = CURRENT_TIMESTAMP
+      alamat = ?, rt = ?, rw = ?, kelurahan = ?, kecamatan = ?, kota = ?,
+      provinsi = ?, kodepos = ?, telepon = ?, umur = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
   const result = stmt.run(
     data.nik, data.nama, data.jk, data.tmpt_lhr, normalizedBirthDate,
     data.status, data.shdk, data.no_kk, data.agama, data.pddk_akhir,
     data.pekerjaan, data.nama_ayah, data.nama_ibu, data.nama_kep_kel,
-    data.alamat, computedAge, id
+    data.alamat, data.rt, data.rw, data.kelurahan, data.kecamatan,
+    data.kota, data.provinsi, data.kodepos, data.telepon, computedAge, id
   );
   return { success: result.changes > 0 };
 });
@@ -995,8 +1139,9 @@ const movePendudukRecords = (rows, targetTable, state, jenis, tglPeristiwa, ket)
     INSERT OR REPLACE INTO ${targetTable} (
       nik, nama, jk, tmpt_lhr, tgl_lhr, status, shdk, no_kk,
       agama, pddk_akhir, pekerjaan, nama_ayah, nama_ibu,
-      nama_kep_kel, alamat, umur, state
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      nama_kep_kel, alamat, rt, rw, kelurahan, kecamatan, kota, provinsi,
+      kodepos, telepon, umur, state
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const updateStmt = db.prepare(`
     UPDATE penduduk SET
@@ -1032,6 +1177,14 @@ const movePendudukRecords = (rows, targetTable, state, jenis, tglPeristiwa, ket)
       row.nama_ibu,
       row.nama_kep_kel,
       row.alamat,
+      row.rt,
+      row.rw,
+      row.kelurahan,
+      row.kecamatan,
+      row.kota,
+      row.provinsi,
+      row.kodepos,
+      row.telepon,
       computedAge,
       state
     );
@@ -1139,7 +1292,15 @@ ipcMain.handle('db-export-csv', async () => {
         item.nama_ayah,
         item.nama_ibu,
         item.nama_kep_kel,
-        item.alamat || ''
+        item.alamat || '',
+        item.rt || '',
+        item.rw || '',
+        item.kelurahan || '',
+        item.kecamatan || '',
+        item.kota || '',
+        item.provinsi || '',
+        item.kodepos || '',
+        item.telepon || ''
       ];
       csvContent += row.map(escapeCsvValue).join(',') + '\n';
     });
@@ -1174,7 +1335,15 @@ ipcMain.handle('db-export-excel', async () => {
       NAMA_AYAH: item.nama_ayah,
       NAMA_IBU: item.nama_ibu,
       NAMA_KEP_KEL: item.nama_kep_kel,
-      ALAMAT: item.alamat || ''
+      ALAMAT: item.alamat || '',
+      RT: item.rt || '',
+      RW: item.rw || '',
+      KELURAHAN: item.kelurahan || '',
+      KECAMATAN: item.kecamatan || '',
+      KOTA: item.kota || '',
+      PROVINSI: item.provinsi || '',
+      KODEPOS: item.kodepos || '',
+      TELEPON: item.telepon || ''
     }));
 
     const workbook = XLSX.utils.book_new();

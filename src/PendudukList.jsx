@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Table, Button, Dropdown, Modal, Form, Input, Select, message, Space, Popconfirm, Row, Col, DatePicker, Radio } from 'antd';
+import { Table, Button, Divider, Dropdown, Modal, Form, Input, Select, message, Space, Popconfirm, Row, Col, DatePicker, Radio } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ExportOutlined, UploadOutlined, DownOutlined, DownloadOutlined, SwapOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getPendudukList, createPenduduk, updatePenduduk, deletePenduduk, exportCSV, exportExcel, importCSV, importExcel, exportTemplateCSV, exportTemplateExcel, movePenduduk, getAllReferences } from './db';
@@ -345,6 +345,73 @@ export default function PendudukList() {
     }
   };
 
+  const filteredData = data.filter((item) => {
+    const query = searchText.trim().toLowerCase();
+    const matchesSearch = !query
+      || item.nik?.toLowerCase().includes(query)
+      || item.nama?.toLowerCase().includes(query)
+      || item.no_kk?.toLowerCase().includes(query)
+      || item.alamat?.toLowerCase().includes(query)
+      || item.rt?.toLowerCase().includes(query)
+      || item.rw?.toLowerCase().includes(query)
+      || item.kelurahan?.toLowerCase().includes(query)
+      || item.kecamatan?.toLowerCase().includes(query)
+      || item.kota?.toLowerCase().includes(query)
+      || item.provinsi?.toLowerCase().includes(query)
+      || item.kodepos?.toLowerCase().includes(query)
+      || item.telepon?.toLowerCase().includes(query);
+
+    const matchesAgama = !filterAgama || item.agama === filterAgama;
+    const matchesStatus = !filterStatus || item.status === filterStatus;
+    const matchesJk = !filterJk || item.jk === filterJk;
+
+    return matchesSearch && matchesAgama && matchesStatus && matchesJk;
+  });
+
+  const formatAddress = (record) => {
+    const parts = [];
+    const alamat = record.alamat?.trim();
+    if (alamat) {
+      parts.push(alamat);
+    }
+
+    const rtRaw = record.rt?.toString().trim();
+    const rwRaw = record.rw?.toString().trim();
+    const rt = rtRaw ? rtRaw.padStart(3, '0') : '';
+    const rw = rwRaw ? rwRaw.padStart(3, '0') : '';
+    if (rt || rw) {
+      parts.push(`RT ${rt || '-'}${rw ? `/RW ${rw}` : ''}`);
+    }
+
+    const kelurahan = record.kelurahan?.trim();
+    if (kelurahan) {
+      parts.push(`Kelurahan ${kelurahan}`);
+    }
+
+    const kecamatan = record.kecamatan?.trim();
+    if (kecamatan) {
+      parts.push(`Kecamatan ${kecamatan}`);
+    }
+
+    const kota = record.kota?.trim();
+    if (kota) {
+      parts.push(kota);
+    }
+
+    const provinsiRaw = record.provinsi?.trim();
+    if (provinsiRaw) {
+      const provinsi = provinsiRaw.replace(/^provinsi\s+/i, '');
+      parts.push(`Provinsi ${provinsi}`);
+    }
+
+    const kodepos = record.kodepos?.toString().trim();
+    if (kodepos) {
+      parts.push(kodepos);
+    }
+
+    return parts.join(', ');
+  };
+
   const columns = [
     { title: 'NIK', dataIndex: 'nik', key: 'nik', width: 150, sorter: (a, b) => a.nik.localeCompare(b.nik) },
     { title: 'Nama', dataIndex: 'nama', key: 'nama', width: 200, sorter: (a, b) => a.nama.localeCompare(b.nama) },
@@ -358,7 +425,15 @@ export default function PendudukList() {
       render: (_, record) => getAgeFromBirthDate(record.tgl_lhr)
     },
     { title: 'No. KK', dataIndex: 'no_kk', key: 'no_kk', width: 150 },
-    { title: 'Alamat', dataIndex: 'alamat', key: 'alamat', width: 300, ellipsis: true },
+    {
+      title: 'Alamat',
+      dataIndex: 'alamat',
+      key: 'alamat',
+      width: 520,
+      ellipsis: true,
+      render: (_, record) => formatAddress(record)
+    },
+    { title: 'Telepon', dataIndex: 'telepon', key: 'telepon', width: 140 },
     {
       title: 'Aksi',
       key: 'action',
@@ -401,21 +476,6 @@ export default function PendudukList() {
     }
   ];
 
-  const filteredData = data.filter((item) => {
-    const query = searchText.trim().toLowerCase();
-    const matchesSearch = !query
-      || item.nik?.toLowerCase().includes(query)
-      || item.nama?.toLowerCase().includes(query)
-      || item.no_kk?.toLowerCase().includes(query)
-      || item.alamat?.toLowerCase().includes(query);
-
-    const matchesAgama = !filterAgama || item.agama === filterAgama;
-    const matchesStatus = !filterStatus || item.status === filterStatus;
-    const matchesJk = !filterJk || item.jk === filterJk;
-
-    return matchesSearch && matchesAgama && matchesStatus && matchesJk;
-  });
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -454,7 +514,7 @@ export default function PendudukList() {
       <Row gutter={[12, 12]} style={styles.filterBar}>
         <Col xs={24} md={8}>
           <Input.Search
-            placeholder="Cari NIK, Nama, No. KK, Alamat"
+            placeholder="Cari NIK, Nama, No. KK, Alamat, RT/RW, Kelurahan, Kecamatan"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             allowClear
@@ -518,7 +578,7 @@ export default function PendudukList() {
           dataSource={filteredData}
           loading={loading}
           rowKey="id"
-          scroll={{ x: 1200, y: tableHeight }}
+          scroll={{ x: 2000, y: tableHeight }}
           pagination={{
             pageSize,
             showSizeChanger: true,
@@ -541,102 +601,13 @@ export default function PendudukList() {
           onFinish={handleSubmit}
           layout="vertical"
         >
-          <Form.Item
-            label="NIK"
-            name="nik"
-            rules={[{ required: true, message: 'NIK wajib diisi!' }]}
-          >
-            <Input maxLength={16} />
-          </Form.Item>
-
-          <Form.Item
-            label="Nama Lengkap"
-            name="nama"
-            rules={[{ required: true, message: 'Nama wajib diisi!' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Jenis Kelamin" name="jk">
-            <Select>
-              {references.jk.map((item) => (
-                <Option key={item.id} value={item.name}>
-                  {getJkLabel(item.name)}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Tempat Lahir" name="tmpt_lhr">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Tanggal Lahir" name="tgl_lhr">
-                <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Status Pernikahan" name="status">
-                <Select>
-                  {references.status.map((item) => (
-                    <Option key={item.id} value={item.name}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Hubungan Keluarga" name="shdk">
-                <Select>
-                  {references.shdk.map((item) => (
-                    <Option key={item.id} value={item.name}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
           <Form.Item label="No. Kartu Keluarga" name="no_kk">
             <Input maxLength={16} />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Agama" name="agama">
-                <Select>
-                  {references.agama.map((item) => (
-                    <Option key={item.id} value={item.name}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Pendidikan Terakhir" name="pddk_akhir">
-                <Select>
-                  {references.pendidikan.map((item) => (
-                    <Option key={item.id} value={item.name}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item label="Pekerjaan" name="pekerjaan">
-            <Select showSearch>
-              {references.pekerjaan.map((item) => (
+          <Form.Item label="Hubungan Keluarga" name="shdk">
+            <Select>
+              {references.shdk.map((item) => (
                 <Option key={item.id} value={item.name}>
                   {item.name}
                 </Option>
@@ -657,9 +628,160 @@ export default function PendudukList() {
             </Col>
           </Row>
 
+          <Divider />
+
+          <Form.Item
+            label="NIK"
+            name="nik"
+            rules={[{ required: true, message: 'NIK wajib diisi!' }]}
+          >
+            <Input maxLength={16} />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={16}>
+              <Form.Item
+                label="Nama Lengkap"
+                name="nama"
+                rules={[{ required: true, message: 'Nama wajib diisi!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Jenis Kelamin" name="jk">
+                <Radio.Group>
+                  {references.jk.map((item) => (
+                    <Radio key={item.id} value={item.name}>
+                      {getJkLabel(item.name)}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Tempat Lahir" name="tmpt_lhr">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Tanggal Lahir" name="tgl_lhr">
+                <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Agama" name="agama">
+                <Select>
+                  {references.agama.map((item) => (
+                    <Option key={item.id} value={item.name}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Status Pernikahan" name="status">
+                <Select>
+                  {references.status.map((item) => (
+                    <Option key={item.id} value={item.name}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Pendidikan Terakhir" name="pddk_akhir">
+                <Select>
+                  {references.pendidikan.map((item) => (
+                    <Option key={item.id} value={item.name}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Pekerjaan" name="pekerjaan">
+                <Select showSearch>
+                  {references.pekerjaan.map((item) => (
+                    <Option key={item.id} value={item.name}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider />
+
           <Form.Item label="Alamat" name="alamat">
             <TextArea rows={3} />
           </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item label="RT" name="rt">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="RW" name="rw">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Kode Pos" name="kodepos">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Kelurahan" name="kelurahan">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Kecamatan" name="kecamatan">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Kota" name="kota">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Provinsi" name="provinsi">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12} />
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item label="Telepon" name="telepon">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>

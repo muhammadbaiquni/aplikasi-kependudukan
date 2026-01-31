@@ -5,7 +5,7 @@ table. Dibangun dengan Electron + Vite + React + SQLite.
 
 ## Fitur Utama
 - CRUD penduduk, keluarga, referensi, dan settings profil.
-- Import/Export CSV dan Excel (penduduk).
+- Import/Export CSV dan Excel (penduduk) dengan detail alamat.
 - Template import CSV/Excel berisi header + contoh data.
 - Pindah/meninggal: pindahkan data ke tabel khusus + catat peristiwa.
 - Pivot table untuk penduduk, pindah, dan meninggal.
@@ -41,7 +41,7 @@ npm run lint          # Lint
 ## Format Import Penduduk
 Header kolom:
 ```
-NIK,NAMA,JK,TMPT_LHR,TGL_LHR,STATUS,SHDK,NO_KK,AGAMA,PDDK_AKHIR,PEKERJAAN,NAMA_AYAH,NAMA_IBU,NAMA_KEP_KEL,ALAMAT
+NIK,NAMA,JK,TMPT_LHR,TGL_LHR,STATUS,SHDK,NO_KK,AGAMA,PDDK_AKHIR,PEKERJAAN,NAMA_AYAH,NAMA_IBU,NAMA_KEP_KEL,ALAMAT,RT,RW,KELURAHAN,KECAMATAN,KOTA,PROVINSI,KODEPOS,TELEPON
 ```
 
 Format tanggal lahir yang didukung:
@@ -51,6 +51,16 @@ Format tanggal lahir yang didukung:
 - Excel Date (tipe Date)
 
 Umur dihitung otomatis dari `TGL_LHR`.
+
+## Tampilan Alamat di Tabel
+Di tabel Penduduk/Pindah/Meninggal, kolom alamat ditampilkan sebagai gabungan:
+
+`{alamat}, RT {rt}/RW {rw}, Kelurahan {kelurahan}, Kecamatan {kecamatan}, {kota}, Provinsi {provinsi}, {kodepos}`
+
+Aturan tampilan:
+- Bagian yang kosong akan dihilangkan.
+- RT/RW dipad menjadi 3 digit (contoh: `9` → `009`, `09` → `009`).
+- Kata "provinsi" di awal field provinsi akan dihapus agar tidak dobel.
 
 ## Database
 - Mode dev: `aplikasi-kependudukan.db` di root project.

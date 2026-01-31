@@ -1,23 +1,6 @@
-const isRenderer = typeof window !== 'undefined' && window.electron;
+import { getAgeFromBirthDate } from './utils/formatters';
 
-const getAgeFromBirthDate = (birthDate) => {
-  if (!birthDate) {
-    return 0;
-  }
-  const date = new Date(birthDate);
-  if (Number.isNaN(date.getTime())) {
-    return 0;
-  }
-  const today = new Date();
-  let age = today.getFullYear() - date.getFullYear();
-  const hasHadBirthday =
-    today.getMonth() > date.getMonth()
-    || (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
-  if (!hasHadBirthday) {
-    age -= 1;
-  }
-  return Math.max(0, age);
-};
+const isRenderer = typeof window !== 'undefined' && window.electron;
 
 const initialMockData = {
   penduduk: [

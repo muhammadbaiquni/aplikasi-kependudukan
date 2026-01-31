@@ -3,19 +3,10 @@ import { Table, Button, Divider, Dropdown, Modal, Form, Input, Select, message, 
 import { PlusOutlined, EditOutlined, DeleteOutlined, ExportOutlined, UploadOutlined, DownOutlined, DownloadOutlined, SwapOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getPendudukList, createPenduduk, updatePenduduk, deletePenduduk, exportCSV, exportExcel, importCSV, importExcel, exportTemplateCSV, exportTemplateExcel, movePenduduk, getAllReferences } from './db';
+import { formatAddress, getJkLabel } from './utils/formatters';
 
 const { TextArea } = Input;
 const { Option } = Select;
-
-const getJkLabel = (value) => {
-  if (value === 'L') {
-    return 'Laki-laki';
-  }
-  if (value === 'P') {
-    return 'Perempuan';
-  }
-  return value;
-};
 
 export default function PendudukList() {
   const [loading, setLoading] = useState(false);
@@ -367,50 +358,6 @@ export default function PendudukList() {
 
     return matchesSearch && matchesAgama && matchesStatus && matchesJk;
   });
-
-  const formatAddress = (record) => {
-    const parts = [];
-    const alamat = record.alamat?.trim();
-    if (alamat) {
-      parts.push(alamat);
-    }
-
-    const rtRaw = record.rt?.toString().trim();
-    const rwRaw = record.rw?.toString().trim();
-    const rt = rtRaw ? rtRaw.padStart(3, '0') : '';
-    const rw = rwRaw ? rwRaw.padStart(3, '0') : '';
-    if (rt || rw) {
-      parts.push(`RT ${rt || '-'}${rw ? `/RW ${rw}` : ''}`);
-    }
-
-    const kelurahan = record.kelurahan?.trim();
-    if (kelurahan) {
-      parts.push(`Kelurahan ${kelurahan}`);
-    }
-
-    const kecamatan = record.kecamatan?.trim();
-    if (kecamatan) {
-      parts.push(`Kecamatan ${kecamatan}`);
-    }
-
-    const kota = record.kota?.trim();
-    if (kota) {
-      parts.push(kota);
-    }
-
-    const provinsiRaw = record.provinsi?.trim();
-    if (provinsiRaw) {
-      const provinsi = provinsiRaw.replace(/^provinsi\s+/i, '');
-      parts.push(`Provinsi ${provinsi}`);
-    }
-
-    const kodepos = record.kodepos?.toString().trim();
-    if (kodepos) {
-      parts.push(kodepos);
-    }
-
-    return parts.join(', ');
-  };
 
   const columns = [
     { title: 'NIK', dataIndex: 'nik', key: 'nik', width: 150, sorter: (a, b) => a.nik.localeCompare(b.nik) },

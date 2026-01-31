@@ -15,6 +15,9 @@ release/
 # Logs
 *.log
 
+# Test Result
+test-results/
+
 # Temporary files
 *.db
 *.sqlite

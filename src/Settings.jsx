@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Checkbox, Divider, Form, Input, message, Popconfirm, Space } from 'antd';
+import { Button, Card, Checkbox, Form, Input, message, Popconfirm, Space, Tabs } from 'antd';
 import { getAppInfo, getProfile, resetData, updatePassword, updateProfile } from './db';
 import { useAuth } from './AuthProvider';
 
@@ -103,162 +103,184 @@ export default function Settings() {
     }
   };
 
+  const tabs = [
+    {
+      key: 'profile',
+      label: 'Profile',
+      children: (
+        <Card title="Profil Pengguna">
+          <Form form={profileForm} layout="vertical" onFinish={handleProfileSubmit}>
+            <Form.Item
+              label="Username"
+              name="username"
+              rules={[{ required: true, message: 'Username wajib diisi.' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item label="Nama" name="nama">
+              <Input />
+            </Form.Item>
+            <Form.Item label="Alamat" name="alamat">
+              <TextArea rows={3} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Simpan Profil
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      )
+    },
+    {
+      key: 'password',
+      label: 'Password',
+      children: (
+        <Card title="Ubah Password">
+          <Form form={passwordForm} layout="vertical" onFinish={handlePasswordSubmit}>
+            <Form.Item
+              label="Password Lama"
+              name="currentPassword"
+              rules={[{ required: true, message: 'Password lama wajib diisi.' }]}
+            >
+              <Input.Password />
+            </Form.Item>
+            <Form.Item
+              label="Password Baru"
+              name="newPassword"
+              rules={[{ required: true, message: 'Password baru wajib diisi.' }]}
+            >
+              <Input.Password />
+            </Form.Item>
+            <Form.Item
+              label="Konfirmasi Password Baru"
+              name="confirmPassword"
+              dependencies={['newPassword']}
+              rules={[
+                { required: true, message: 'Konfirmasi password wajib diisi.' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('newPassword') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Password tidak cocok.'));
+                  }
+                })
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Update Password
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      )
+    },
+    {
+      key: 'reset',
+      label: 'Reset Data',
+      children: (
+        <Card title="Reset Data">
+          <Space direction="vertical" size="small">
+            <Checkbox
+              checked={resetOptions.resetPenduduk}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetPenduduk: event.target.checked
+                }))
+              }
+            >
+              Reset Data Penduduk
+            </Checkbox>
+            <Checkbox
+              checked={resetOptions.resetPendudukPindah}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetPendudukPindah: event.target.checked
+                }))
+              }
+            >
+              Reset Data Penduduk Pindah
+            </Checkbox>
+            <Checkbox
+              checked={resetOptions.resetPendudukMeninggal}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetPendudukMeninggal: event.target.checked
+                }))
+              }
+            >
+              Reset Data Penduduk Meninggal
+            </Checkbox>
+            <Checkbox
+              checked={resetOptions.resetKeluarga}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetKeluarga: event.target.checked
+                }))
+              }
+            >
+              Reset Data Keluarga
+            </Checkbox>
+            <Checkbox
+              checked={resetOptions.resetPeristiwa}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetPeristiwa: event.target.checked
+                }))
+              }
+            >
+              Reset Data Peristiwa
+            </Checkbox>
+            <Checkbox
+              checked={resetOptions.resetReferences}
+              onChange={(event) =>
+                setResetOptions((prev) => ({
+                  ...prev,
+                  resetReferences: event.target.checked
+                }))
+              }
+            >
+              Reset Referensi ke Default
+            </Checkbox>
+            <Popconfirm
+              title="Yakin ingin reset data?"
+              onConfirm={handleReset}
+              okText="Ya"
+              cancelText="Batal"
+            >
+              <Button danger type="primary">
+                Reset Data
+              </Button>
+            </Popconfirm>
+          </Space>
+        </Card>
+      )
+    },
+    {
+      key: 'info',
+      label: 'App Info',
+      children: (
+        <Card title="Info Aplikasi">
+          <div>Versi: {appInfo.version}</div>
+          <div>Platform: {appInfo.platform}</div>
+        </Card>
+      )
+    }
+  ];
+
   return (
     <div style={styles.container}>
       <h2>Settings</h2>
-
-      <Card title="Profil Pengguna" style={styles.card}>
-        <Form form={profileForm} layout="vertical" onFinish={handleProfileSubmit}>
-          <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: 'Username wajib diisi.' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item label="Nama" name="nama">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Alamat" name="alamat">
-            <TextArea rows={3} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Simpan Profil
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      <Card title="Ubah Password" style={styles.card}>
-        <Form form={passwordForm} layout="vertical" onFinish={handlePasswordSubmit}>
-          <Form.Item
-            label="Password Lama"
-            name="currentPassword"
-            rules={[{ required: true, message: 'Password lama wajib diisi.' }]}
-          >
-            <Input.Password />
-          </Form.Item>
-          <Form.Item
-            label="Password Baru"
-            name="newPassword"
-            rules={[{ required: true, message: 'Password baru wajib diisi.' }]}
-          >
-            <Input.Password />
-          </Form.Item>
-          <Form.Item
-            label="Konfirmasi Password Baru"
-            name="confirmPassword"
-            dependencies={['newPassword']}
-            rules={[
-              { required: true, message: 'Konfirmasi password wajib diisi.' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('newPassword') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('Password tidak cocok.'));
-                }
-              })
-            ]}
-          >
-            <Input.Password />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Update Password
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      <Card title="Reset Data" style={styles.card}>
-        <Space direction="vertical" size="small">
-          <Checkbox
-            checked={resetOptions.resetPenduduk}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetPenduduk: event.target.checked
-              }))
-            }
-          >
-            Reset Data Penduduk
-          </Checkbox>
-          <Checkbox
-            checked={resetOptions.resetPendudukPindah}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetPendudukPindah: event.target.checked
-              }))
-            }
-          >
-            Reset Data Penduduk Pindah
-          </Checkbox>
-          <Checkbox
-            checked={resetOptions.resetPendudukMeninggal}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetPendudukMeninggal: event.target.checked
-              }))
-            }
-          >
-            Reset Data Penduduk Meninggal
-          </Checkbox>
-          <Checkbox
-            checked={resetOptions.resetKeluarga}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetKeluarga: event.target.checked
-              }))
-            }
-          >
-            Reset Data Keluarga
-          </Checkbox>
-          <Checkbox
-            checked={resetOptions.resetPeristiwa}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetPeristiwa: event.target.checked
-              }))
-            }
-          >
-            Reset Data Peristiwa
-          </Checkbox>
-          <Checkbox
-            checked={resetOptions.resetReferences}
-            onChange={(event) =>
-              setResetOptions((prev) => ({
-                ...prev,
-                resetReferences: event.target.checked
-              }))
-            }
-          >
-            Reset Referensi ke Default
-          </Checkbox>
-          <Popconfirm
-            title="Yakin ingin reset data?"
-            onConfirm={handleReset}
-            okText="Ya"
-            cancelText="Batal"
-          >
-            <Button danger type="primary">
-              Reset Data
-            </Button>
-          </Popconfirm>
-        </Space>
-      </Card>
-
-      <Divider />
-
-      <Card title="Info Aplikasi" style={styles.card}>
-        <div>Versi: {appInfo.version}</div>
-        <div>Platform: {appInfo.platform}</div>
-      </Card>
+      <Tabs items={tabs} />
     </div>
   );
 }

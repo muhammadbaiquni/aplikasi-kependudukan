@@ -16,7 +16,6 @@ export default function Settings() {
     resetPenduduk: true,
     resetPendudukPindah: true,
     resetPendudukMeninggal: true,
-    resetKeluarga: true,
     resetPeristiwa: true,
     resetReferences: true
   });
@@ -217,17 +216,6 @@ export default function Settings() {
               }
             >
               Reset Data Penduduk Meninggal
-            </Checkbox>
-            <Checkbox
-              checked={resetOptions.resetKeluarga}
-              onChange={(event) =>
-                setResetOptions((prev) => ({
-                  ...prev,
-                  resetKeluarga: event.target.checked
-                }))
-              }
-            >
-              Reset Data Keluarga
             </Checkbox>
             <Checkbox
               checked={resetOptions.resetPeristiwa}

@@ -184,19 +184,6 @@ export const getKeluargaList = async () => {
   return [{ id: 1, no_kk: '1234567890000001', kepala_keluarga: 'Ahmad Fauzi', alamat: 'Jl. Merdeka No. 1' }];
 };
 
-export const createKeluarga = async (data) => {
-  if (isRenderer && window.electron) {
-    return window.electron.createKeluarga(data);
-  }
-  return { success: true };
-};
-
-export const deleteKeluarga = async (noKK) => {
-  if (isRenderer && window.electron) {
-    return window.electron.deleteKeluarga(noKK);
-  }
-  return { success: true };
-};
 
 export const getKeluargaByNoKK = async (noKK) => {
   if (isRenderer && window.electron) {
@@ -384,4 +371,25 @@ export const movePenduduk = async (payload) => {
 
   mockData.penduduk = mockData.penduduk.filter((item) => !movedIds.has(item.id));
   return { success: true, moved: moveRows.length };
+};
+
+export const getTableList = async () => {
+  if (isRenderer && window.electron) {
+    return window.electron.getTableList();
+  }
+  return [];
+};
+
+export const getTableData = async (tableName) => {
+  if (isRenderer && window.electron) {
+    return window.electron.getTableData(tableName);
+  }
+  return [];
+};
+
+export const runQuery = async (query) => {
+  if (isRenderer && window.electron) {
+    return window.electron.runQuery(query);
+  }
+  return { error: 'Query hanya tersedia di aplikasi desktop.' };
 };

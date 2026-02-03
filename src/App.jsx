@@ -23,6 +23,7 @@ import Login from './Login';
 import Referensi from './Referensi';
 import Settings from './Settings';
 import Pivot from './Pivot';
+import Query from './Query';
 
 const { Header, Content, Sider } = Layout;
 
@@ -41,7 +42,8 @@ export default function App() {
     { key: 'penduduk-pindah', icon: <SwapOutlined />, label: 'Data Pindah' },
     { key: 'penduduk-meninggal', icon: <CloseCircleOutlined />, label: 'Data Kematian' },
     { key: 'keluarga', icon: <TeamOutlined />, label: 'Data Keluarga' },
-    { key: 'pivot', icon: <BarChartOutlined />, label: 'Pivot' }
+    { key: 'pivot', icon: <BarChartOutlined />, label: 'Pivot' },
+    { key: 'query', icon: <AppstoreOutlined />, label: 'Query' }
   ];
 
   const bottomMenuItems = [
@@ -74,6 +76,8 @@ export default function App() {
         return <Referensi />;
       case 'pivot':
         return <Pivot />;
+      case 'query':
+        return <Query />;
       case 'settings':
         return <Settings />;
       default:

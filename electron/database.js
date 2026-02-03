@@ -886,20 +886,6 @@ export function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS keluarga (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      no_kk TEXT UNIQUE NOT NULL,
-      kepala_keluarga TEXT NOT NULL,
-      alamat TEXT,
-      desa_kelurahan TEXT,
-      kecamatan TEXT,
-      kabupaten_kota TEXT,
-      provinsi TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      deleted_at DATETIME
-    );
-
     CREATE TABLE IF NOT EXISTS peristiwa (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       jenis TEXT CHECK(jenis IN ('LAHIR', 'MENINGGAL', 'DATANG', 'PERGI')),
@@ -921,6 +907,7 @@ export function initDatabase() {
   ensurePeristiwaSchema();
   ensureReferenceTables();
   seedReferences();
+  db.exec('DROP TABLE IF EXISTS keluarga;');
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_penduduk_no_kk_deleted
     ON penduduk(no_kk, deleted_at);
@@ -1110,30 +1097,6 @@ ipcMain.handle('db-delete-reference', (event, type, id) => {
   return { success: result.changes > 0 };
 });
 
-ipcMain.handle('db-create-keluarga', (event, data) => {
-  const stmt = db.prepare(`
-    INSERT OR IGNORE INTO keluarga (
-      no_kk, kepala_keluarga, alamat, desa_kelurahan, kecamatan, kabupaten_kota, provinsi
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  const result = stmt.run(
-    data.no_kk,
-    data.kepala_keluarga,
-    data.alamat,
-    data.desa_kelurahan || null,
-    data.kecamatan || null,
-    data.kabupaten_kota || null,
-    data.provinsi || null
-  );
-  return { success: result.changes > 0 };
-});
-
-ipcMain.handle('db-delete-keluarga', (event, noKK) => {
-  const stmt = db.prepare('DELETE FROM keluarga WHERE no_kk = ?');
-  const result = stmt.run(noKK);
-  return { success: result.changes > 0 };
-});
-
 ipcMain.handle('db-get-keluarga-by-no-kk', (event, noKK) => {
   const stmt = db.prepare('SELECT * FROM penduduk WHERE no_kk = ?');
   return stmt.get(noKK);
@@ -1147,6 +1110,50 @@ ipcMain.handle('db-get-keluarga-members', (event, noKK) => {
     ...item,
     umur: getAgeFromBirthDate(item.tgl_lhr)
   }));
+});
+
+const getTableNames = () => db.prepare(`
+  SELECT name
+  FROM sqlite_master
+  WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+  ORDER BY name
+`).all().map((row) => row.name);
+
+const isSelectQuery = (query) => /^\s*(SELECT|PRAGMA|WITH|EXPLAIN)\b/i.test(query || '');
+
+const isKnownTable = (tableName) => {
+  if (!tableName) {
+    return false;
+  }
+  return getTableNames().includes(tableName);
+};
+
+ipcMain.handle('db-get-table-list', () => getTableNames());
+
+ipcMain.handle('db-get-table-data', (event, tableName) => {
+  if (!isKnownTable(tableName)) {
+    return [];
+  }
+  const stmt = db.prepare(`SELECT * FROM ${tableName}`);
+  return stmt.all();
+});
+
+ipcMain.handle('db-run-query', (event, query) => {
+  const trimmed = (query || '').trim();
+  if (!trimmed) {
+    return { error: 'Query kosong.' };
+  }
+  try {
+    if (isSelectQuery(trimmed)) {
+      const stmt = db.prepare(trimmed);
+      return { type: 'rows', rows: stmt.all() };
+    }
+    const stmt = db.prepare(trimmed);
+    const result = stmt.run();
+    return { type: 'run', changes: result.changes, lastInsertRowid: result.lastInsertRowid };
+  } catch (error) {
+    return { error: error?.message || 'Gagal menjalankan query.' };
+  }
 });
 
 const movePendudukRecords = (rows, targetTable, state, jenis, tglPeristiwa, ket) => {
@@ -1451,9 +1458,6 @@ ipcMain.handle('db-reset-data', (event, options) => {
     if (options.resetPendudukMeninggal) {
       db.exec('DELETE FROM penduduk_meninggal;');
       db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'penduduk_meninggal';");
-    }
-    if (options.resetKeluarga) {
-      db.exec('DELETE FROM keluarga;');
     }
     if (options.resetPeristiwa) {
       db.exec('DELETE FROM peristiwa;');

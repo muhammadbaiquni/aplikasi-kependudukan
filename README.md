@@ -4,12 +4,14 @@ Desktop app untuk pendataan penduduk, kepindahan, kematian, dan pivot
 table. Dibangun dengan Electron + Vite + React + SQLite.
 
 ## Fitur Utama
-- CRUD penduduk, keluarga, referensi, dan settings profil.
+- CRUD penduduk, referensi, dan settings profil.
 - Import/Export CSV dan Excel (penduduk) dengan detail alamat.
 - Template import CSV/Excel berisi header + contoh data.
 - Pindah/meninggal: pindahkan data ke tabel khusus + catat peristiwa.
 - Pivot table untuk penduduk, pindah, dan meninggal.
 - Dashboard statistik + filter tanggal peristiwa.
+- Data keluarga diambil dari penduduk (berdasarkan no_kk).
+- Modul Query: menjalankan SQL, daftar tabel, dan tab data tabel.
 
 ## Kebutuhan
 - Node.js 18+ (disarankan LTS).
@@ -51,6 +53,7 @@ Format tanggal lahir yang didukung:
 - Excel Date (tipe Date)
 
 Umur dihitung otomatis dari `TGL_LHR`.
+Untuk data meninggal, umur dihitung dari `TGL_LHR` ke `TGL_PERISTIWA`.
 
 ## Tampilan Alamat di Tabel
 Di tabel Penduduk/Pindah/Meninggal, kolom alamat ditampilkan sebagai gabungan:
@@ -59,7 +62,7 @@ Di tabel Penduduk/Pindah/Meninggal, kolom alamat ditampilkan sebagai gabungan:
 
 Aturan tampilan:
 - Bagian yang kosong akan dihilangkan.
-- RT/RW dipad menjadi 3 digit (contoh: `9` → `009`, `09` → `009`).
+- RT/RW dipad menjadi 3 digit (contoh: `9` -> `009`, `09` -> `009`).
 - Kata "provinsi" di awal field provinsi akan dihapus agar tidak dobel.
 
 ## Database

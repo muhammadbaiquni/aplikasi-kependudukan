@@ -30,6 +30,18 @@ export const getAgeFromBirthDate = (dateString) => {
   return Math.max(0, today.diff(birthDate, 'year'));
 };
 
+export const getAgeFromBirthDateAt = (birthDateString, referenceDateString) => {
+  if (!birthDateString || !referenceDateString) {
+    return 0;
+  }
+  const birthDate = dayjs(birthDateString);
+  const referenceDate = dayjs(referenceDateString);
+  if (!birthDate.isValid() || !referenceDate.isValid()) {
+    return 0;
+  }
+  return Math.max(0, referenceDate.diff(birthDate, 'year'));
+};
+
 export const formatAddress = (record) => {
   const parts = [];
   const alamat = record?.alamat?.trim();

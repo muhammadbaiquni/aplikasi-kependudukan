@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Table, message, Input, Select, Row, Col, Button, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import { getPendudukMeninggalList } from './db';
-import { formatAddress, formatDate, getAgeFromBirthDate, getJkLabel } from './utils/formatters';
+import { formatAddress, formatDate, getAgeFromBirthDateAt, getJkLabel } from './utils/formatters';
 import { compareDate, compareNumber, compareString } from './utils/comparators';
 
 export default function PendudukMeninggalList() {
@@ -95,8 +95,11 @@ export default function PendudukMeninggalList() {
       dataIndex: 'umur',
       key: 'umur',
       width: 70,
-      sorter: (a, b) => compareNumber(a.umur, b.umur),
-      render: (_, record) => getAgeFromBirthDate(record.tgl_lhr)
+      sorter: (a, b) => compareNumber(
+        getAgeFromBirthDateAt(a.tgl_lhr, a.tgl_peristiwa),
+        getAgeFromBirthDateAt(b.tgl_lhr, b.tgl_peristiwa)
+      ),
+      render: (_, record) => getAgeFromBirthDateAt(record.tgl_lhr, record.tgl_peristiwa)
     },
     {
       title: 'Status',

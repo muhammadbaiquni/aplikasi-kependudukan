@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Table, Button, Modal, Input, message, Space, Row, Col, Select } from 'antd';
 import { TeamOutlined } from '@ant-design/icons';
 import { getKeluargaList, getKeluargaMembers } from './db';
+import { compareNumber, compareString } from './utils/comparators';
 
 export default function KeluargaList() {
   const [loading, setLoading] = useState(false);
@@ -58,8 +59,20 @@ export default function KeluargaList() {
   };
 
   const columns = [
-    { title: 'No. KK', dataIndex: 'no_kk', key: 'no_kk', width: 150 },
-    { title: 'Kepala Keluarga', dataIndex: 'nama', key: 'nama', width: 200 },
+    {
+      title: 'No. KK',
+      dataIndex: 'no_kk',
+      key: 'no_kk',
+      width: 150,
+      sorter: (a, b) => compareString(a.no_kk, b.no_kk)
+    },
+    {
+      title: 'Kepala Keluarga',
+      dataIndex: 'nama',
+      key: 'nama',
+      width: 200,
+      sorter: (a, b) => compareString(a.nama, b.nama)
+    },
     // { title: 'Alamat', dataIndex: 'alamat', key: 'alamat', width: 250, ellipsis: true },
     // { title: 'Desa/Kelurahan', dataIndex: 'desa_kelurahan', key: 'desa_kelurahan', width: 150 },
     // { title: 'Kecamatan', dataIndex: 'kecamatan', key: 'kecamatan', width: 150 },
@@ -70,6 +83,7 @@ export default function KeluargaList() {
       dataIndex: 'jumlah_anggota',
       key: 'jumlah_anggota',
       width: 120,
+      sorter: (a, b) => compareNumber(a.jumlah_anggota, b.jumlah_anggota),
       render: (value) => value ?? 0
     },
     {

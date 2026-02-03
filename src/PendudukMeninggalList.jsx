@@ -3,6 +3,7 @@ import { Table, message, Input, Select, Row, Col, Button, DatePicker } from 'ant
 import dayjs from 'dayjs';
 import { getPendudukMeninggalList } from './db';
 import { formatAddress, formatDate, getAgeFromBirthDate, getJkLabel } from './utils/formatters';
+import { compareDate, compareNumber, compareString } from './utils/comparators';
 
 export default function PendudukMeninggalList() {
   const [loading, setLoading] = useState(false);
@@ -51,13 +52,26 @@ export default function PendudukMeninggalList() {
   }, [data.length]);
 
   const columns = [
-    { title: 'NIK', dataIndex: 'nik', key: 'nik', width: 150 },
-    { title: 'Nama', dataIndex: 'nama', key: 'nama', width: 200 },
+    {
+      title: 'NIK',
+      dataIndex: 'nik',
+      key: 'nik',
+      width: 150,
+      sorter: (a, b) => compareString(a.nik, b.nik)
+    },
+    {
+      title: 'Nama',
+      dataIndex: 'nama',
+      key: 'nama',
+      width: 200,
+      sorter: (a, b) => compareString(a.nama, b.nama)
+    },
     {
       title: 'JK',
       dataIndex: 'jk',
       key: 'jk',
       width: 60,
+      sorter: (a, b) => compareString(a.jk, b.jk),
       render: (value) => getJkLabel(value)
     },
     {
@@ -65,6 +79,7 @@ export default function PendudukMeninggalList() {
       dataIndex: 'tgl_lhr',
       key: 'tgl_lhr',
       width: 120,
+      sorter: (a, b) => compareDate(a.tgl_lhr, b.tgl_lhr),
       render: (value) => formatDate(value)
     },
     {
@@ -72,6 +87,7 @@ export default function PendudukMeninggalList() {
       dataIndex: 'tgl_peristiwa',
       key: 'tgl_peristiwa',
       width: 120,
+      sorter: (a, b) => compareDate(a.tgl_peristiwa, b.tgl_peristiwa),
       render: (value) => formatDate(value)
     },
     {
@@ -79,14 +95,51 @@ export default function PendudukMeninggalList() {
       dataIndex: 'umur',
       key: 'umur',
       width: 70,
+      sorter: (a, b) => compareNumber(a.umur, b.umur),
       render: (_, record) => getAgeFromBirthDate(record.tgl_lhr)
     },
-    { title: 'Status', dataIndex: 'status', key: 'status', width: 140 },
-    { title: 'SHDK', dataIndex: 'shdk', key: 'shdk', width: 160 },
-    { title: 'No. KK', dataIndex: 'no_kk', key: 'no_kk', width: 150 },
-    { title: 'Agama', dataIndex: 'agama', key: 'agama', width: 120 },
-    { title: 'Pendidikan', dataIndex: 'pddk_akhir', key: 'pddk_akhir', width: 180 },
-    { title: 'Pekerjaan', dataIndex: 'pekerjaan', key: 'pekerjaan', width: 200 },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 140,
+      sorter: (a, b) => compareString(a.status, b.status)
+    },
+    {
+      title: 'SHDK',
+      dataIndex: 'shdk',
+      key: 'shdk',
+      width: 160,
+      sorter: (a, b) => compareString(a.shdk, b.shdk)
+    },
+    {
+      title: 'No. KK',
+      dataIndex: 'no_kk',
+      key: 'no_kk',
+      width: 150,
+      sorter: (a, b) => compareString(a.no_kk, b.no_kk)
+    },
+    {
+      title: 'Agama',
+      dataIndex: 'agama',
+      key: 'agama',
+      width: 120,
+      sorter: (a, b) => compareString(a.agama, b.agama)
+    },
+    {
+      title: 'Pendidikan',
+      dataIndex: 'pddk_akhir',
+      key: 'pddk_akhir',
+      width: 180,
+      sorter: (a, b) => compareString(a.pddk_akhir, b.pddk_akhir)
+    },
+    {
+      title: 'Pekerjaan',
+      dataIndex: 'pekerjaan',
+      key: 'pekerjaan',
+      width: 200,
+      sorter: (a, b) => compareString(a.pekerjaan, b.pekerjaan)
+    },
     {
       title: 'Alamat',
       dataIndex: 'alamat',
@@ -95,7 +148,13 @@ export default function PendudukMeninggalList() {
       ellipsis: true,
       render: (_, record) => formatAddress(record)
     },
-    { title: 'Telepon', dataIndex: 'telepon', key: 'telepon', width: 140 }
+    {
+      title: 'Telepon',
+      dataIndex: 'telepon',
+      key: 'telepon',
+      width: 140,
+      sorter: (a, b) => compareString(a.telepon, b.telepon)
+    }
   ];
 
   const options = useMemo(() => {

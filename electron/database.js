@@ -921,6 +921,10 @@ export function initDatabase() {
   ensurePeristiwaSchema();
   ensureReferenceTables();
   seedReferences();
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_penduduk_no_kk_deleted
+    ON penduduk(no_kk, deleted_at);
+  `);
   db.prepare("UPDATE users SET nama = ? WHERE username = ? AND (nama IS NULL OR nama = '')")
     .run('Administrator', 'admin');
 }
@@ -1045,7 +1049,18 @@ ipcMain.handle('db-delete-penduduk', (event, id) => {
 });
 
 ipcMain.handle('db-get-keluarga-list', () => {
-  const stmt = db.prepare("SELECT * FROM penduduk WHERE no_kk IS NOT NULL AND shdk='KEPALA KELUARGA' AND deleted_at IS NULL");
+  const stmt = db.prepare(`
+    SELECT
+      p.*,
+      COUNT(m.id) AS jumlah_anggota
+    FROM penduduk p
+    LEFT JOIN penduduk m
+      ON m.no_kk = p.no_kk AND m.deleted_at IS NULL
+    WHERE p.no_kk IS NOT NULL
+      AND p.shdk = 'KEPALA KELUARGA'
+      AND p.deleted_at IS NULL
+    GROUP BY p.id
+  `);
   return stmt.all();
 });
 

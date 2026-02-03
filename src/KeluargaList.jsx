@@ -67,12 +67,10 @@ export default function KeluargaList() {
     // { title: 'Provinsi', dataIndex: 'provinsi', key: 'provinsi', width: 150 },
     {
       title: 'Jumlah Anggota',
-      key: 'jumlah',
+      dataIndex: 'jumlah_anggota',
+      key: 'jumlah_anggota',
       width: 120,
-      render: (_, record) => {
-        const members = getKeluargaMembers(record.no_kk);
-        return members.length;
-      }
+      render: (value) => value ?? 0
     },
     {
       title: 'Aksi',
